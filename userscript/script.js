@@ -1,13 +1,14 @@
 // ==UserScript==
-// @name         Better Resolution Terrain
+// @name         Better Resolution Terrain dev
 // @namespace    http://tampermonkey.net/
-// @version      2024-01-21
+// @version      2024-01-21 1
 // @description  Gets higher resolution images and blocks ads
 // @author       drakeerv
-// @match        https://www.geo-fs.com/geofs.php?v=*
+// @match        https://www.geo-fs.com/geofs.php*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=geo-fs.com
 // @grant        none
 // @license      MIT
+// @updateURL    https://raw.githubusercontent.com/vector090/geo-fs-hd/refs/heads/dev/userscript/script.js
 // ==/UserScript==
 
 (function() {
@@ -71,7 +72,9 @@
             maximumLevel: 12
         });
     };
+
     window.executeOnEventDone("geofsStarted", function() {
+        console.log("geofsStarted");
         if (window.geofs.api.hdOn === window.geofsNewHDState) return;
         window.jQuery("body").trigger("terrainProviderWillUpdate");
         window.geofs.geoIpUpdate();
@@ -79,9 +82,10 @@
         window.geofs.api.renderingQuality();
         window.jQuery("body").trigger("terrainProviderUpdate");
     });
-    window.executeOnEventDone("afterDeferredload", function() {
-        window.geofs.mapXYZ = "https://data.geo-fs.com/osm/{z}/{x}/{y}.png";
-    });
+
+    // window.executeOnEventDone("afterDeferredload", function() {
+    //     window.geofs.mapXYZ = "https://data.geo-fs.com/osm/{z}/{x}/{y}.png";
+    // });
 
     document.querySelectorAll("body > div.geofs-adbanner.geofs-adsense-container")[0].remove();
 })();
