@@ -21,6 +21,7 @@
     // <!-- geofs.api.FlatRunwayTerrainProvider -->
 
     function bing(){
+        console.log("bing");
         viewer = geofs.api.viewer;
         viewer.imageryLayers.removeAll(true);
 
@@ -42,99 +43,100 @@
         viewer.imageryLayers.addImageryProvider(bing2);
     }
 
+
+    let gtileset;
+
     function google(){
-        // google 3d tile
+        console.log("google");
         const Maps_API_KEY = 'AIzaSyDwgHcF-bYuR1LtlN2MlnoeT_ac4Xl8Wis';
         const tilesetUrl = `https://tile.googleapis.com/v1/3dtiles/root.json?key=${Maps_API_KEY}`;
-        const tileset = new Cesium.Cesium3DTileset({
-            url: tilesetUrl
-        });
-        viewer.scene.primitives.add(tileset);
 
+        if (!gtileset) {
+            gtileset = new Cesium.Cesium3DTileset({
+                url: tilesetUrl
+            });
+        }
+        viewer.scene.primitives.add(gtileset);
+    }
+
+    function noGoogle(){
+        console.log("noGoogle");
+        viewer.scene.primitives.remove(gtileset);
+    }
+
+    let gEnabled = false;
+    function toggleGoogle(){
+        if(gEnabled){
+            noGoogle();
+            gEnabled = false;
+        }else{
+            google();
+            gEnabled = true;
+        }
     }
 
     function changeMap(){
-        console.log("changeMap");
+        // console.log("changeMap");
         bing();
-        google();
+        // google();
     }
 
     setTimeout(changeMap, 8000);
 
 
-    // const provider = "google";
-    // const multiplayerServer = "default"
 
-    // window.geofsNewHDState = true;
 
-    // window.geofs.geoIpUpdate = function() {
-    //     delete window.geofs.api.analytics;
-    //     document.body.classList.add("geofs-hd");
 
-    //     if (multiplayerServer !== "default") {
-    //         window.geofs.multiplayerHost = multiplayerServer;
-    //     }
+    function slowAircraft(){
+        console.log("slowAircraft");
+        let xrate = 10;
+        geofs.aircraft.instance.airfoils.forEach(i => { i.area *= xrate });
 
-        // switch (provider) {
-        //     case "cache":
-        //         window.geofs.api.imageryProvider = new window.Cesium.UrlTemplateImageryProvider({
-        //             maximumLevel: 21,
-        //             hasAlphaChannel: false,
-        //             subdomains: "abcdefghijklmnopqrstuvwxyz".split(""),
-        //             url: "http://localhost/map/{z}/{x}/{y}"
-        //         });
-        //         break;
-        //     case "google":
-        //         window.geofs.api.imageryProvider = new window.Cesium.UrlTemplateImageryProvider({
-        //             maximumLevel: 21,
-        //             hasAlphaChannel: false,
-        //             subdomains: ["mt0", "mt1", "mt2", "mt3"],
-        //             url: "https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
-        //         });
-        //         break;
-        //     case "apple":
-        //         window.geofs.api.imageryProvider = new window.Cesium.UrlTemplateImageryProvider({
-        //             maximumLevel: 21,
-        //             hasAlphaChannel: false,
-        //             subdomains: ["sat-cdn1", "sat-cdn2", "sat-cdn3", "sat-cdn4"],
-        //             url: "https://{s}.apple-mapkit.com/tile?style=7&size=1&scale=1&z={z}&x={x}&y={y}&v=9651&accessKey=1705988638_4603104305979553294_%2F_Qvq1XXyXG5w0IUYlFOsIQsxLt2ALxm32i%2BAMbLIFD5s%3D"
-        //         });
-        //         break;
-        //     case "bing":
-        //         window.geofs.api.imageryProvider = new window.Cesium.BingMapsImageryProvider({
-        //             url: "https://dev.virtualearth.net",
-        //             key: "AjrgR5TNicgFReuFwvNH71v4YeQNkXIB20l63ZMm86mVuBGZPhTHMkdiVq2_9L7x",
-        //             mapStyle: window.Cesium.BingMapsStyle.AERIAL
-        //         });
-        //         break;
-        //     default: break
-        // }
+        // yet faster top speed
+        geofs.aircraft.instance.definition.maxRPM=22222
 
-        // window.geofs.api.setImageryProvider(window.geofs.api.imageryProvider, false);
-        // window.geofs.api.viewer.terrainProvider = window.geofs.api.flatRunwayTerrainProviderInstance = new window.geofs.api.FlatRunwayTerrainProvider({
-        //     baseProvider: new window.Cesium.CesiumTerrainProvider({
-        //         url: "https://data.geo-fs.com/srtm/",
-        //         requestWaterMask: false,
-        //         requestVertexNormals: true
-        //     }),
-        //     bypass: false,
-        //     maximumLevel: 12
-        // });
-    // };
+        // optional
+        geofs.aircraft.instance.definition.dragFactor=2
+    }
 
-    // window.executeOnEventDone("geofsStarted", function() {
-    //     console.log("geofsStarted");
-    //     if (window.geofs.api.hdOn === window.geofsNewHDState) return;
-    //     window.jQuery("body").trigger("terrainProviderWillUpdate");
-    //     window.geofs.geoIpUpdate();
-    //     window.geofs.api.hdOn = window.geofsNewHDState;
-    //     window.geofs.api.renderingQuality();
-    //     window.jQuery("body").trigger("terrainProviderUpdate");
-    // });
+    function sharperFlightPlan(){
+        console.log("sharperFlightPlan");
+        geofs.flightPlan.update = function (e) {
+            if (!geofs.flightPlan.waypointArray.length)
+                return;
+            if (!geofs.flightPlan.trackedWaypoint) {
+                geofs.flightPlan.selectWaypoint(0);
+                return
+            }
+            if (geofs.flightPlan.trackedWaypoint.id == geofs.flightPlan.waypointArray.length - 1)
+                return;
+            let t = geofs.animation.getValue(geofs.nav.currentNAVUnitName + "DME")
+                , a = 0.3; //0.6;//clamp(geofs.flightPlan.DMEMargin * geofs.aircraft.instance.llaLocation[2], 1, 100);
+            console.log(t);
+            t < a && geofs.flightPlan.selectWaypoint(geofs.flightPlan.trackedWaypoint.id + 1),
+                geofs.flightPlan.isOpen && (geofs.flightPlan.distanceLeft = geofs.flightPlan.totalDistance - (geofs.flightPlan.trackedWaypoint.distanceThusfar - t),
+                    $(".flightPlanDistance").html("(" + parseInt(geofs.flightPlan.distanceLeft) + "nm)"))
+        }
+    }
 
-    // window.executeOnEventDone("afterDeferredload", function() {
-    //     window.geofs.mapXYZ = "https://data.geo-fs.com/osm/{z}/{x}/{y}.png";
-    // });
+    function miscTunes(){
+        // console.log("miscTunes");
+        slowAircraft();
+        sharperFlightPlan();
+    }
 
-    document.querySelectorAll("body > div.geofs-adbanner.geofs-adsense-container")[0].remove();
+    setTimeout(miscTunes, 10000);
+
+    document.addEventListener('keydown', (event) => {
+        if (event.shiftKey && event.key === 'G') {
+            event.preventDefault();
+
+            // console.log('Shift + G 组合键被按下！');
+            toggleGoogle();
+        }
+    });
+
+    // document.querySelectorAll("body > div.geofs-adbanner.geofs-adsense-container")[0].remove();
 })();
+
+
