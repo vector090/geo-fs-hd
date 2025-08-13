@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Better Resolution Terrain dev
 // @namespace    http://tampermonkey.net/
-// @version      2024-01-21 1
+// @version      2024-01-21-1
 // @description  Gets higher resolution images and blocks ads
 // @author       drakeerv
 // @match        https://www.geo-fs.com/geofs.php*
